@@ -1,0 +1,36 @@
+SBFA Project Workflow: From Raw Data to Actionable InsightThis document outlines the end-to-end process of the Small Business Factory Agency (SBFA) platform. Our workflow is designed to be a seamless and automated journey, transforming a small business's data into a clear, strategic asset.Stage 1: Onboarding & Data CollectionThis is where a small business owner in the North Wollo Zone first engages with our platform. The goal is to collect all the necessary information to begin analysis.User Onboarding: The business owner signs up and fills out a secure Due Diligence Form to provide basic corporate and financial information.Document Upload: The user uploads key financial documents, like income statements, balance sheets, and tax records. These are encrypted and stored in a secure database.Stage 2: AI Analysis & Data ProcessingOnce the data is uploaded, our system takes over. This is the "engine" of the SBFA, where raw data is turned into structured, usable information.Data Ingestion: The uploaded documents (PDFs, spreadsheets, etc.) are securely ingested into the system.AI Parsing: Our AI model reads and understands the data, extracting key metrics, numbers, and categories.Risk Assessment: The AI cross-references the data with known risks in the region (as outlined in the Ethiopia Investment Risk Report) and a Due Diligence Checklist.Stage 3: Insight Generation & VisualizationThis is the most critical stage, where we create value for the user. We take the raw, analyzed data and turn it into clear, easy-to-understand insights.Dashboard Creation: The data is used to populate a dynamic dashboard, visualizing key performance indicators (KPIs) like profitability, cash flow, and risk scores.Insight Reports: The AI generates a clear, concise summary of the business's health, highlighting strengths and weaknesses.Stage 4: Output & ActionThe final stage is where our user takes action. We provide them with the tools they need to make informed decisions and grow their business.Secure Access: The business owner can access their personalized dashboard from any device.Printable Reports: They can download a professional, shareable report to show to potential partners or investors.Strategic Recommendations: The platform provides clear, actionable steps based on the insights to improve their business.The Workflow in a NutshellData Upload -> AI Analysis -> Insight Dashboard -> Strategic ActionThis is our complete workflow. It is designed to be a seamless, professional, and efficient loop that empowers small businesses.# This is a basic workflow to help you get started with Actiond
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
