@@ -1,1 +1,39 @@
 
+# Name of the workflow as it appears in the Actions tab
+name: CI for Node.js Project
+
+# 1. Trigger the workflow on these events
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# 2. Define the jobs
+jobs:
+  # The 'build' job
+  build:
+    # 3. Specify the runner environment
+    runs-on: ubuntu-latest
+
+    # 4. Define the steps within the job
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # Step 3: Install project dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Step 4: Run the tests
+      - name: Run Tests
+        run: npm test
