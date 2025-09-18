@@ -1,4 +1,629 @@
 SBFA Project Workflow: From Raw Data to Actionable InsightThis document outlines the end-to-end process of the Small Business Factory Agency (SBFA) platform. Our workflow is designed to be a seamless and automated journey, transforming a small business's data into a clear, strategic asset.Stage 1: Onboarding & Data CollectionThis is where a small business owner in the North Wollo Zone first engages with our platform. The goal is to collect all the necessary information to begin analysis.User Onboarding: The business owner signs up and fills out a secure Due Diligence Form to provide basic corporate and financial information.Document Upload: The user uploads key financial documents, like income statements, balance sheets, and tax records. These are encrypted and stored in a secure database.Stage 2: AI Analysis & Data ProcessingOnce the data is uploaded, our system takes over. This is the "engine" of the SBFA, where raw data is turned into structured, usable information.Data Ingestion: The uploaded documents (PDFs, spreadsheets, etc.) are securely ingested into the system.AI Parsing: Our AI model reads and understands the data, extracting key metrics, numbers, and categories.Risk Assessment: The AI cross-references the data with known risks in the region (as outlined in the Ethiopia Investment Risk Report) and a Due Diligence Checklist.Stage 3: Insight Generation & VisualizationThis is the most critical stage, where we create value for the user. We take the raw, analyzed data and turn it into clear, easy-to-understand insights.Dashboard Creation: The data is used to populate a dynamic dashboard, visualizing key performance indicators (KPIs) like profitability, cash flow, and risk scores.Insight Reports: The AI generates a clear, concise summary of the business's health, highlighting strengths and weaknesses.Stage 4: Output & ActionThe final stage is where our user takes action. We provide them with the tools they need to make informed decisions and grow their business.Secure Access: The business owner can access their personalized dashboard from any device.Printable Reports: They can download a professional, shareable report to show to potential partners or investors.Strategic Recommendations: The platform provides clear, actionable steps based on the insights to improve their business.The Workflow in a NutshellData Upload -> AI Analysis -> Insight Dashboard -> Strategic ActionThis is our complete workflow. It is designed to be a seamless, professional, and efficient loop that empowers small businesses.# This is a basic workflow to help you get started with Actiond
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBFA | Final Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Main Container -->
+    <div class="w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden md:flex">
+
+        <!-- Sidebar (User Info) -->
+        <div id="sidebar" class="w-full md:w-1/3 bg-gray-800 text-white p-6 md:p-8 flex flex-col items-center justify-center text-center">
+            <div class="flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 text-yellow-400">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21.75a60.076 60.076 0 0110.517-.996 60.076 60.076 0 0110.517.996m-13.886 1.011a12.004 12.004 0 014.288 0m-4.288 0c2.39-4.282 2.946-6.526 3.018-7.75l1.011 1.011c.72.72 1.487 1.258 2.312 1.583m-1.423-2.613a48.747 48.747 0 00-.974 5.385m-1.782-2.185c-1.393.72-2.39 1.487-2.946 2.312l-1.011 1.011c-.72.72-1.487 1.258-2.312 1.583m-1.423-2.613a48.747 48.747 0 00-.974 5.385m-1.782-2.185c-1.393.72-2.39 1.487-2.946 2.312l-1.011 1.011c-.72.72-1.487 1.258-2.312 1.583" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold mb-2">SBFA</h1>
+            <p class="text-gray-300">Small Business Factory Agency</p>
+            <div class="mt-8 text-left w-full" id="user-info">
+                <h3 class="text-xl font-semibold mb-2">Welcome!</h3>
+                <p id="auth-status">Please sign in to continue.</p>
+                <p class="text-sm mt-2">Your User ID:</p>
+                <div class="bg-gray-700 text-gray-400 text-xs p-2 rounded-md break-all mt-1" id="user-id">Not signed in</div>
+            </div>
+            <button id="auth-button" class="mt-6 w-full py-2 bg-yellow-400 text-gray-800 font-bold rounded-lg shadow-md hover:bg-yellow-500 transition-colors">Sign In / Sign Up</button>
+            <button id="sign-out-button" class="mt-4 w-full py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 transition-colors hidden">Sign Out</button>
+            <p class="text-center text-xs text-gray-400 mt-4">Empowering small businesses in the North Wollo Zone.</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="w-full md:w-2/3 p-6 md:p-8 flex flex-col">
+
+            <!-- Title & Loader -->
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800" id="main-title">Dashboard</h2>
+                <div id="loader" class="hidden flex items-center justify-center space-x-2">
+                    <div class="w-4 h-4 rounded-full bg-gray-400 animate-pulse"></div>
+                    <div class="w-4 h-4 rounded-full bg-gray-400 animate-pulse" style="animation-delay: 0.2s;"></div>
+                    <div class="w-4 h-4 rounded-full bg-gray-400 animate-pulse" style="animation-delay: 0.4s;"></div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div id="content" class="flex-1 flex flex-col space-y-6">
+
+                <!-- Auth Form -->
+                <div id="auth-form" class="hidden">
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Account Access</h3>
+                        <input type="email" id="email-input" placeholder="Email" class="w-full p-3 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-colors">
+                        <input type="password" id="password-input" placeholder="Password" class="w-full p-3 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-colors">
+                        <button id="email-auth-button" class="w-full py-3 bg-gray-800 text-white font-bold rounded-lg hover:bg-gray-900 transition-colors">Sign Up / Sign In</button>
+                        <button id="anonymous-auth-button" class="w-full py-3 mt-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors">Or Sign in Anonymously</button>
+                        <p id="auth-message" class="mt-4 text-sm text-center text-red-500"></p>
+                    </div>
+                </div>
+
+                <!-- Dashboard & Data Form -->
+                <div id="dashboard" class="hidden">
+
+                    <!-- Analytics Dashboard -->
+                    <div class="bg-indigo-50 p-6 rounded-lg shadow-md mb-6">
+                        <h3 class="text-xl font-bold text-indigo-800 mb-4">Project Impact Analytics</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                            <div class="bg-indigo-200 p-4 rounded-lg shadow">
+                                <p class="text-3xl font-bold text-indigo-900" id="user-count">0</p>
+                                <p class="text-sm text-indigo-700 mt-1">Total Users</p>
+                            </div>
+                            <div class="bg-indigo-200 p-4 rounded-lg shadow">
+                                <p class="text-3xl font-bold text-indigo-900" id="report-count">0</p>
+                                <p class="text-sm text-indigo-700 mt-1">Reports Generated</p>
+                            </div>
+                            <div class="bg-indigo-200 p-4 rounded-lg shadow">
+                                <p class="text-3xl font-bold text-indigo-900" id="task-count">0</p>
+                                <p class="text-sm text-indigo-700 mt-1">Tasks Completed</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Display Section -->
+                    <div class="bg-blue-50 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-bold text-blue-800 mb-4">Your Due Diligence Data</h3>
+                        <div id="data-display" class="bg-blue-100 p-4 rounded-lg text-sm text-blue-700">
+                            No data found. Please submit your information.
+                        </div>
+                    </div>
+
+                    <!-- AI Analysis Section -->
+                    <div class="bg-green-50 p-6 rounded-lg shadow-md">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-bold text-green-800">AI-Generated Report</h3>
+                            <button id="analyze-button" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors">Generate Report</button>
+                        </div>
+                        <div id="ai-analysis" class="mt-4 bg-green-100 p-4 rounded-lg text-sm text-green-700">
+                            Click 'Generate Report' to get an AI summary.
+                        </div>
+                    </div>
+
+                    <!-- Task Tracker Section -->
+                    <div class="bg-yellow-50 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-bold text-yellow-800 mb-4">Actionable Tasks</h3>
+                        <div class="flex space-x-2 mb-4">
+                            <input type="text" id="task-input" placeholder="Add a new task..." class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-colors">
+                            <button id="add-task-button" class="px-4 py-2 bg-yellow-600 text-white font-semibold rounded-lg hover:bg-yellow-700 transition-colors">Add Task</button>
+                        </div>
+                        <div id="task-list" class="space-y-2 text-sm text-yellow-700">
+                            No tasks added yet.
+                        </div>
+                    </div>
+
+                    <!-- Share Report Section -->
+                    <div class="bg-red-50 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-bold text-red-800 mb-4">Share Your Report</h3>
+                        <button id="share-button" class="w-full py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors">Share Report</button>
+                        <div id="share-url-container" class="hidden mt-4 bg-red-100 p-4 rounded-lg">
+                            <p class="text-sm font-semibold text-red-700">Copy this URL to share:</p>
+                            <input type="text" id="share-url" readonly class="w-full p-2 mt-2 rounded-lg border border-red-300 bg-red-50 text-red-900 text-xs">
+                            <button id="copy-button" class="w-full py-2 mt-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors">Copy URL</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Submission Form -->
+                <div id="data-form" class="hidden bg-purple-50 p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold text-purple-800 mb-4">Submit Your Business Data</h3>
+                    <form id="business-data-form" class="space-y-4">
+                        <input type="text" id="business-name" placeholder="Business Name" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400">
+                        <textarea id="business-description" placeholder="Business Description" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"></textarea>
+                        <input type="number" id="annual-revenue" placeholder="Annual Revenue (USD)" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400">
+                        <input type="text" id="sector" placeholder="Sector (e.g., Agriculture, Manufacturing)" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400">
+                        <button type="submit" class="w-full py-3 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 transition-colors">Submit Data</button>
+                    </form>
+                </div>
+
+                <!-- Shared Report Viewer -->
+                <div id="shared-report-viewer" class="hidden bg-gray-50 p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Shared Report</h3>
+                    <div id="shared-report-content" class="bg-gray-100 p-4 rounded-lg text-sm text-gray-700">
+                        <!-- Report content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase and API Script -->
+    <script type="module">
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import {
+            getAuth,
+            signInWithCustomToken,
+            onAuthStateChanged,
+            signInAnonymously,
+            signOut,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            doc,
+            setDoc,
+            getDoc,
+            onSnapshot,
+            collection,
+            addDoc,
+            query,
+            where,
+            deleteDoc,
+            getDocs
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration - DO NOT MODIFY
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const __app_id = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // UI Elements
+        const authButton = document.getElementById('auth-button');
+        const signOutButton = document.getElementById('sign-out-button');
+        const authForm = document.getElementById('auth-form');
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const emailAuthButton = document.getElementById('email-auth-button');
+        const anonymousAuthButton = document.getElementById('anonymous-auth-button');
+        const authMessage = document.getElementById('auth-message');
+        const mainTitle = document.getElementById('main-title');
+        const loader = document.getElementById('loader');
+
+        const dashboard = document.getElementById('dashboard');
+        const dataForm = document.getElementById('data-form');
+        const dataDisplay = document.getElementById('data-display');
+        const businessDataForm = document.getElementById('business-data-form');
+        const analyzeButton = document.getElementById('analyze-button');
+        const aiAnalysis = document.getElementById('ai-analysis');
+        const shareButton = document.getElementById('share-button');
+        const shareUrlContainer = document.getElementById('share-url-container');
+        const shareUrlInput = document.getElementById('share-url');
+        const copyButton = document.getElementById('copy-button');
+        const sharedReportViewer = document.getElementById('shared-report-viewer');
+        const sharedReportContent = document.getElementById('shared-report-content');
+
+        const taskInput = document.getElementById('task-input');
+        const addTaskButton = document.getElementById('add-task-button');
+        const taskList = document.getElementById('task-list');
+
+        const userCountElement = document.getElementById('user-count');
+        const reportCountElement = document.getElementById('report-count');
+        const taskCountElement = document.getElementById('task-count');
+
+        let db, auth, userId;
+
+        // Initialize Firebase
+        function initializeFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setupAuthStateListener();
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                authMessage.textContent = "Error initializing app. Please try again.";
+            }
+        }
+
+        // Handle URL parameters for shared reports
+        const urlParams = new URLSearchParams(window.location.search);
+        const sharedReportId = urlParams.get('reportId');
+
+        if (sharedReportId) {
+            mainTitle.textContent = "Shared Report";
+            sharedReportViewer.classList.remove('hidden');
+            document.getElementById('content').classList.remove('flex-col');
+            document.getElementById('content').classList.add('items-center', 'justify-center');
+            authButton.classList.add('hidden');
+            document.getElementById('user-info').classList.add('hidden');
+            loadSharedReport(sharedReportId);
+        } else {
+            initializeFirebase();
+        }
+
+        async function loadSharedReport(reportId) {
+            try {
+                const reportRef = doc(db, `artifacts/${__app_id}/public/reports`, reportId);
+                const reportSnap = await getDoc(reportRef);
+                if (reportSnap.exists()) {
+                    const data = reportSnap.data();
+                    sharedReportContent.innerHTML = `
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">${data.businessName}</h4>
+                        <p class="text-sm"><strong>Sector:</strong> ${data.sector}</p>
+                        <p class="text-sm"><strong>Annual Revenue:</strong> $${data.annualRevenue}</p>
+                        <p class="text-sm mt-4 font-semibold">AI Summary:</p>
+                        <p class="text-sm mt-2">${data.aiSummary}</p>
+                    `;
+                } else {
+                    sharedReportContent.textContent = "Report not found.";
+                }
+            } catch (error) {
+                console.error("Error loading shared report:", error);
+                sharedReportContent.textContent = "Error loading report. It may have been deleted.";
+            }
+        }
+
+        // --- AUTHENTICATION ---
+        function setupAuthStateListener() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    document.getElementById('user-id').textContent = userId;
+                    document.getElementById('auth-status').textContent = 'Signed in successfully.';
+                    authForm.classList.add('hidden');
+                    authButton.classList.add('hidden');
+                    signOutButton.classList.remove('hidden');
+                    dashboard.classList.remove('hidden');
+                    dataForm.classList.remove('hidden');
+                    mainTitle.textContent = 'Dashboard';
+                    loadUserData();
+                    loadTasks();
+                    fetchAnalytics();
+                } else {
+                    userId = null;
+                    document.getElementById('user-id').textContent = 'Not signed in';
+                    document.getElementById('auth-status').textContent = 'Please sign in to continue.';
+                    authForm.classList.add('hidden');
+                    authButton.classList.remove('hidden');
+                    signOutButton.classList.add('hidden');
+                    dashboard.classList.add('hidden');
+                    dataForm.classList.add('hidden');
+                    mainTitle.textContent = 'Sign In';
+                }
+            });
+
+            // Initial sign-in with custom token if available
+            (async () => {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token.length > 0) {
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } catch (error) {
+                        console.error("Custom token sign-in failed:", error);
+                        await signInAnonymously(auth);
+                    }
+                } else {
+                    await signInAnonymously(auth);
+                }
+            })();
+        }
+
+        authButton.addEventListener('click', () => {
+            authForm.classList.remove('hidden');
+        });
+
+        signOutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Sign out error:", error);
+                authMessage.textContent = "Error signing out.";
+            }
+        });
+
+        emailAuthButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            if (!email || !password) {
+                authMessage.textContent = "Please enter both email and password.";
+                return;
+            }
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (signInError) {
+                try {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                } catch (signUpError) {
+                    console.error("Auth error:", signUpError);
+                    authMessage.textContent = "Authentication failed. Check your email/password.";
+                }
+            }
+        });
+
+        anonymousAuthButton.addEventListener('click', async () => {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Anonymous sign-in error:", error);
+                authMessage.textContent = "Anonymous sign-in failed.";
+            }
+        });
+
+        // --- DATA HANDLING (FIRESTORE) ---
+        businessDataForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!userId) {
+                alert("Please sign in to submit data.");
+                return;
+            }
+            const data = {
+                businessName: document.getElementById('business-name').value,
+                businessDescription: document.getElementById('business-description').value,
+                annualRevenue: parseInt(document.getElementById('annual-revenue').value),
+                sector: document.getElementById('sector').value,
+                timestamp: Date.now()
+            };
+            try {
+                await setDoc(doc(db, `artifacts/${__app_id}/users/${userId}/data/business_info`), data);
+                console.log("Data saved successfully.");
+                alert("Data submitted successfully!");
+            } catch (error) {
+                console.error("Error saving data:", error);
+            }
+        });
+
+        function loadUserData() {
+            if (!userId) return;
+            const docRef = doc(db, `artifacts/${__app_id}/users/${userId}/data/business_info`);
+            onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    dataDisplay.innerHTML = `
+                        <p><strong>Business Name:</strong> ${data.businessName}</p>
+                        <p><strong>Description:</strong> ${data.businessDescription}</p>
+                        <p><strong>Annual Revenue:</strong> $${data.annualRevenue}</p>
+                        <p><strong>Sector:</strong> ${data.sector}</p>
+                    `;
+                    console.log("User data loaded.");
+                } else {
+                    dataDisplay.textContent = "No data found. Please submit your information.";
+                }
+            }, (error) => {
+                console.error("Error getting real-time data:", error);
+            });
+        }
+
+        // --- AI ANALYSIS ---
+        analyzeButton.addEventListener('click', async () => {
+            if (!userId) {
+                alert("Please sign in to run analysis.");
+                return;
+            }
+            const data = await getDoc(doc(db, `artifacts/${__app_id}/users/${userId}/data/business_info`));
+            if (!data.exists()) {
+                aiAnalysis.textContent = "Please submit your business data first.";
+                return;
+            }
+            loader.classList.remove('hidden');
+            aiAnalysis.textContent = "Analyzing data...";
+            
+            const businessData = data.data();
+            const prompt = `Act as a professional financial analyst for small businesses. Based on the following data, provide a concise, single-paragraph summary of the business's health and potential areas for improvement. Data: Business Name: ${businessData.businessName}, Description: ${businessData.businessDescription}, Annual Revenue: ${businessData.annualRevenue}, Sector: ${businessData.sector}.`;
+
+            try {
+                const payload = {
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }],
+                    tools: [{ "google_search": {} }],
+                };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed with status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const aiResponseText = result.candidates[0].content.parts[0].text;
+                aiAnalysis.textContent = aiResponseText;
+
+                // Record report generation
+                await addDoc(collection(db, `artifacts/${__app_id}/public/analytics/reports/generated`), {
+                    userId: userId,
+                    timestamp: Date.now()
+                });
+
+            } catch (error) {
+                console.error("Error fetching AI analysis:", error);
+                aiAnalysis.textContent = "Error generating analysis. Please try again.";
+            } finally {
+                loader.classList.add('hidden');
+            }
+        });
+
+        // --- TASK TRACKER ---
+        addTaskButton.addEventListener('click', async () => {
+            const taskText = taskInput.value.trim();
+            if (taskText === '') return;
+            if (!userId) {
+                alert("Please sign in to add tasks.");
+                return;
+            }
+            try {
+                await addDoc(collection(db, `artifacts/${__app_id}/users/${userId}/tasks`), {
+                    text: taskText,
+                    completed: false,
+                    timestamp: Date.now()
+                });
+                taskInput.value = '';
+            } catch (error) {
+                console.error("Error adding task:", error);
+            }
+        });
+
+        function loadTasks() {
+            if (!userId) return;
+            const q = query(collection(db, `artifacts/${__app_id}/users/${userId}/tasks`));
+            onSnapshot(q, (snapshot) => {
+                taskList.innerHTML = '';
+                if (snapshot.empty) {
+                    taskList.textContent = 'No tasks added yet.';
+                } else {
+                    snapshot.forEach(doc => {
+                        const task = doc.data();
+                        const taskItem = document.createElement('div');
+                        taskItem.classList.add('flex', 'items-center', 'justify-between', 'p-2', 'bg-yellow-100', 'rounded-lg', 'shadow-sm', 'hover:bg-yellow-200', 'transition-colors');
+                        if (task.completed) {
+                            taskItem.classList.add('line-through', 'text-gray-500');
+                        }
+                        taskItem.innerHTML = `
+                            <span>${task.text}</span>
+                            <div class="flex space-x-2">
+                                <button class="toggle-task text-sm text-yellow-800 hover:text-yellow-900 transition-colors" data-id="${doc.id}" data-completed="${task.completed ? 'true' : 'false'}">
+                                    ${task.completed ? 'Uncomplete' : 'Complete'}
+                                </button>
+                                <button class="delete-task text-sm text-red-500 hover:text-red-700 transition-colors" data-id="${doc.id}">
+                                    Delete
+                                </button>
+                            </div>
+                        `;
+                        taskList.appendChild(taskItem);
+                    });
+                }
+            }, (error) => {
+                console.error("Error loading tasks:", error);
+            });
+        }
+
+        taskList.addEventListener('click', async (e) => {
+            const id = e.target.dataset.id;
+            if (!id) return;
+            const taskRef = doc(db, `artifacts/${__app_id}/users/${userId}/tasks`, id);
+            if (e.target.classList.contains('delete-task')) {
+                try {
+                    await deleteDoc(taskRef);
+                } catch (error) {
+                    console.error("Error deleting task:", error);
+                }
+            } else if (e.target.classList.contains('toggle-task')) {
+                const completed = e.target.dataset.completed === 'true';
+                try {
+                    await setDoc(taskRef, {
+                        completed: !completed
+                    }, {
+                        merge: true
+                    });
+                } catch (error) {
+                    console.error("Error updating task:", error);
+                }
+            }
+        });
+
+        // --- REPORT SHARING ---
+        shareButton.addEventListener('click', async () => {
+            if (!userId) {
+                alert("Please sign in to share a report.");
+                return;
+            }
+            loader.classList.remove('hidden');
+            try {
+                const userDocRef = doc(db, `artifacts/${__app_id}/users/${userId}/data/business_info`);
+                const userDocSnap = await getDoc(userDocRef);
+                const aiSummary = aiAnalysis.textContent;
+
+                if (!userDocSnap.exists() || aiSummary === "Click 'Generate Report' to get an AI summary." || aiSummary === "Error generating analysis. Please try again." || aiSummary === "Analyzing data...") {
+                    alert("Please submit your data and generate a report before sharing.");
+                    loader.classList.add('hidden');
+                    return;
+                }
+
+                const businessData = userDocSnap.data();
+                const publicReportData = {
+                    businessName: businessData.businessName,
+                    sector: businessData.sector,
+                    annualRevenue: businessData.annualRevenue,
+                    aiSummary: aiSummary,
+                    ownerId: userId,
+                    createdAt: Date.now()
+                };
+
+                const publicCollectionRef = collection(db, `artifacts/${__app_id}/public/reports`);
+                const newReportRef = await addDoc(publicCollectionRef, publicReportData);
+                const reportId = newReportRef.id;
+
+                const shareUrl = `${window.location.origin}${window.location.pathname}?reportId=${reportId}`;
+                shareUrlInput.value = shareUrl;
+                shareUrlContainer.classList.remove('hidden');
+
+                alert("Report successfully created and ready to be shared!");
+            } catch (error) {
+                console.error("Error sharing report:", error);
+                alert("Error sharing report. Please try again.");
+            } finally {
+                loader.classList.add('hidden');
+            }
+        });
+
+        copyButton.addEventListener('click', () => {
+            shareUrlInput.select();
+            document.execCommand('copy');
+            alert('URL copied to clipboard!');
+        });
+
+        // --- ANALYTICS TRACKING ---
+        async function fetchAnalytics() {
+            try {
+                // Get all users
+                const usersRef = collection(db, `artifacts/${__app_id}/users`);
+                const usersSnap = await getDocs(usersRef);
+                userCountElement.textContent = usersSnap.size;
+
+                // Get all generated reports
+                const reportsRef = collection(db, `artifacts/${__app_id}/public/analytics/reports/generated`);
+                const reportsSnap = await getDocs(reportsRef);
+                reportCountElement.textContent = reportsSnap.size;
+
+                // Get completed tasks for the current user (if logged in)
+                if (userId) {
+                    const tasksRef = collection(db, `artifacts/${__app_id}/users/${userId}/tasks`);
+                    const completedTasksQuery = query(tasksRef, where("completed", "==", true));
+                    const completedTasksSnap = await getDocs(completedTasksQuery);
+                    taskCountElement.textContent = completedTasksSnap.size;
+                } else {
+                    taskCountElement.textContent = 0;
+                }
+            } catch (error) {
+                console.error("Error fetching analytics:", error);
+            }
+        }
+    </script>
+</body>
+
+</html>
 
 name: CI
 
