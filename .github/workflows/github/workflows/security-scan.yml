@@ -1,4 +1,27 @@
-# This is a basic workflow to help you get started with Actions
+name: Dependency Security Scan
+
+on:
+  schedule:
+    # Runs at 12:00 AM on Monday every week
+    - cron: '0 0 * * 1'
+
+jobs:
+  security_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run audit for vulnerabilities
+        run: npm audit# This is a basic workflow to help you get started with Actions
 
 name: CI
 
