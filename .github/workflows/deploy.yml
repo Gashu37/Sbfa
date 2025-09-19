@@ -1,40 +1,69 @@
-# This is a basic workflow to help you get started with Actions
-# Add this step at the end of your 'build' or 'deploy' job
-- name: Notify on build status
-  if: always() # This step will run regardless of success or failure
-  uses: rtCamp/action-slack-notify@v2
-  env:
-    SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }} # The webhook secret
-    SLACK_MESSAGE: |
-      *Project:* ${{ github.repository }}
-      *Status:* ${{ job.status }}
-      *Ref:* ${{ github.ref }}
-      *Action URL:* ${{ github.event.pull_request.html_url || github.event.head_commit.url }}
-    SLACK_TITLE: "Workflow Status"
-    SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'failure' && 'danger' || 'warning' }}
-name: CI
+name: Deployment
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
+  workflow_run:
+    workflows: ["Node.js CI"]
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    types:
+      - completed
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    # Download and extract the built artifacts from the CI workflow if applicable
+    # - name: Download build artifacts
+    #   uses: actions/github-script@v6
+    #   with:
+    #     script: |
+    #       const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+    #         owner: context.repo.owner,
+    #         repo: context.repo.repo,
+    #         run_id: github.event.workflow_run.id,
+    #       });
+    #       const match = artifacts.data.artifacts.find(artifact => artifact.name == "build");
+    #       const download = await github.rest.actions.downloadArtifact({
+    #         owner: context.repo.owner,
+    #         repo: context.repo.repo,
+    #         artifact_id: match.id,
+    #         archive_format: 'zip',
+    #       });
+    #       const fs = require('fs');
+    #       fs.writeFileSync(`${match.name}.zip`, Buffer.from(download.data));
+    # - name: Unzip artifact
+    #   run: unzip build.zip
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Deploy to Server via SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          cd /path/to/your/app
+          git pull origin main
+          npm install
+          npm run build
+          # Add any other commands needed for your deployment, e.g., restarting a service
+          pm2 restart your-app-name || pm2 start dist/main.js --name your-app-name
+
+```eof
+This template uses SSH to connect to a server and pull the latest code. Remember to store your server credentials as **repository secrets** in GitHub (or your chosen platform) to keep them secure. You can find this setting under `Settings > Secrets and variables > Actions`.
+
+Feel free to ask if you would like me to customize this for a specific cloud provider or if you need a separate script for your deployment.      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
       # Runs a single command using the runners shell
