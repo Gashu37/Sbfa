@@ -1,0 +1,11 @@
+class TRFClientProfile {
+  constructor(name, initialSavings, riskScore) {
+    this.name = name;           // Client Identity
+    this.initialSavings = initialSavings; // Data Point 1
+    this.riskScore = riskScore; // Data Point 2
+  }
+  // ... ሌሎች ዘዴዎች (Methods)
+}
+
+// አዲስ Client መፍጠር (Instantiation)
+const client_w = new TRFClientProfile('Weldiya Resident A', 1250, 7);
