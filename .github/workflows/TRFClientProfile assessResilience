@@ -1,0 +1,12 @@
+// ... በTRFClientProfile ውስጥ
+  assessResilience() { 
+    // ይህ ስሌት የሚሠራው በዚሁ ዕቃ this.initialSavings ላይ ብቻ ነው
+    if (this.initialSavings > 1500 && this.riskScore < 5) {
+      return 'High Resilience';
+    } else {
+      return 'Intervention Needed';
+    }
+  }
+
+// ተግባሩን መጠቀም
+console.log(client_w.assessResilience()); // Output: Intervention Needed
