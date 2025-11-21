@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Classes Demo (TRF Model)</title>
+    <!-- Load Tailwind CSS for professional styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styling for professional look and feel */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-xl p-6 md:p-10">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">TRF Data Model: Using Classes</h1>
+        <p class="text-gray-600 mb-6">
+            This example uses the `TRFDataPoint` class blueprint to instantiate multiple client objects, calculating their resilience and risk score based on initial data.
+        </p>
+        
+        <div id="output" class="space-y-4">
+            <!-- Data will be rendered here by JavaScript -->
+            <p class="text-center text-gray-500 italic">Processing TRF Data...</p>
+        </div>
+
+        <div id="code-output" class="mt-8">
+             <h2 class="text-xl font-semibold text-indigo-700 mb-3">Console Output (See the Blueprint in action):</h2>
+             <pre id="console-display" class="bg-gray-100 p-4 rounded-lg text-sm overflow-x-auto text-gray-800 border border-gray-300">
+                // Output will appear here
+             </pre>
+        </div>
+    </div>
+
+    <script>
+        // Store console output temporarily for display in the HTML pre tag
+        const originalConsoleLog = console.log;
+        const consoleDisplay = document.getElementById('console-display');
+        
+        console.log = function(...args) {
+            const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg).join(' ');
+            consoleDisplay.innerHTML += message + '\n';
+            originalConsoleLog.apply(console, args);
+        };
+
+        // ------------------------------------------------------------------
+        // THE JAVASCRIPT CLASS BLUEPRINT
+        // ------------------------------------------------------------------
+        
+        /**
+         * @class TRFDataPoint
+         * The blueprint for a single financial stability record in the TRF Small Data Model.
+         */
+        class TRFDataPoint {
+            /**
+             * @constructor
+             * Initializes a new data point object.
+             * @param {string} clientName - The name of the client/entity.
+             * @param {number} currentSavings - The measured median monthly savings (ETB).
+             * @param {number} loanRiskScore - The measured financial risk score (1-10).
+             */
+            constructor(clientName, currentSavings, loanRiskScore) {
+                // Properties (Data)
+                this.name = clientName;
+                this.savings = currentSavings;
+                this.riskScore = loanRiskScore;
+            }
+
+            // Methods (Actions/Behavior)
+
+            /**
+             * Calculates a resilience status based on savings and risk score.
+             * @returns {string} Resilience status.
+             */
+            assessResilience() {
+                // Simple logic: High savings AND low risk = High Resilience
+                if (this.savings > 1500 && this.riskScore <= 3) {
+                    return "High Resilience";
+                } else if (this.savings >= 800 && this.riskScore <= 6) {
+                    return "Moderate Resilience";
+                } else {
+                    return "Low Resilience (Intervention Required)";
+                }
+            }
+            
+            /**
+             * Generates a concise summary object for reporting.
+             * @returns {object} Summary data.
+             */
+            generateSummary() {
+                return {
+                    client: this.name,
+                    savings: `${this.savings.toFixed(2)} ETB`,
+                    risk: this.riskScore,
+                    status: this.assessResilience()
+                };
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // USING THE BLUEPRINT (INSTANTIATION)
+        // ------------------------------------------------------------------
+
+        // 1. Create multiple instances (objects) from the single blueprint
+        const clientA = new TRFDataPoint("Client A (High Savings)", 2500, 2);
+        const clientB = new TRFDataPoint("Client B (Moderate Risk)", 950, 5);
+        const clientC = new TRFDataPoint("Client C (High Risk)", 400, 8);
+
+        const dataPoints = [clientA, clientB, clientC];
+        const outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = ''; // Clear initial text
+
+        console.log("--- Initializing TRF Objects ---");
+        console.log("Client A created with the TRFDataPoint class.");
+        console.log("Calling assessResilience() method on Client B...");
+        
+        // 2. Iterate and use the class methods to analyze and display data
+        dataPoints.forEach(dataPoint => {
+            const summary = dataPoint.generateSummary();
+            
+            const statusColor = summary.status.includes('High') ? 'bg-green-100 text-green-800' : 
+                                summary.status.includes('Moderate') ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800';
+
+            const html = `
+                <div class="p-4 border rounded-lg shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+                    <div class="font-semibold text-lg text-gray-700">${summary.client}</div>
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6 text-sm">
+                        <span class="text-gray-500">Savings: <span class="font-medium text-gray-800">${summary.savings}</span></span>
+                        <span class="text-gray-500">Risk Score: <span class="font-medium text-gray-800">${summary.risk}/10</span></span>
+                        <span class="px-3 py-1 text-xs font-bold rounded-full ${statusColor}">
+                            ${summary.status}
+                        </span>
+                    </div>
+                </div>
+            `;
+            outputDiv.innerHTML += html;
+            console.log(summary);
+        });
+        
+        console.log("--- All TRF objects processed successfully. ---");
+
+
+    </script>
+</body>
+</html>
