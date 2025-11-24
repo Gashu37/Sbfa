@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STI-Ethiopia Data Integrity & LLM Analysis Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fc; }
+        .card { box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .btn-primary { transition: all 0.2s ease; }
+        .btn-primary:hover { background-color: #1a56db; transform: translateY(-1px); }
+        .hash-output { word-break: break-all; background-color: #e9ecef; }
+        .llm-button { background-color: #9333ea; }
+        .llm-button:hover { background-color: #7e22ce; }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="card bg-white w-full max-w-4xl p-8 rounded-xl border border-gray-200">
+            <h1 class="text-3xl font-extrabold text-[#1f2937] mb-6 border-b pb-3 text-center">
+                🛡️ STI-Ethiopia: የሪፖርት ደህንነት እና ትንተና መሳሪያ
+            </h1>
+            <p class="text-sm text-gray-500 mb-6 text-center">
+                ይህ መሳሪያ SHA-256 Hashን በመጠቀም የሰነድ ታማኝነትን ያረጋግጣል እንዲሁም የGenimi APIን በመጠቀም የሪፖርት ትንተና ይሰጣል።
+            </p>
+
+            <!-- 1. Report Data Input -->
+            <div class="mb-8">
+                <label for="reportContent" class="block text-lg font-medium text-gray-700 mb-2">1. የሪፖርት ይዘት (Original Data)</label>
+                <textarea id="reportContent" rows="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#3b82f6] focus:border-[#3b82f6] transition" placeholder="እዚህ የፋይናንስ Resilience Score ሪፖርቱን JSON ወይም Text ያስገቡ..."></textarea>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <button onclick="generateHash()" class="btn-primary py-3 bg-[#3b82f6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg">
+                        Generate Original Hash (Step 1: Hash ፍጠር)
+                    </button>
+                    <button onclick="analyzeReport()" id="analyzeBtn" class="llm-button py-3 text-white font-semibold rounded-lg shadow-md hover:shadow-lg flex items-center justify-center">
+                        ✨ የሪፖርት ትንተና እና ማጠቃለያ (LLM Analyze)
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. Hash Output -->
+            <div class="mb-8 border-b pb-6">
+                <label class="block text-lg font-medium text-gray-700 mb-2">የተፈጠረው Hash Value</label>
+                <div id="originalHashOutput" class="hash-output p-3 rounded-lg text-sm text-gray-800 h-10 flex items-center">
+                    <!-- Hash will appear here -->
+                </div>
+            </div>
+
+            <!-- 3. LLM Analysis Output -->
+            <div class="mb-8 border-b pb-6">
+                <h2 class="text-xl font-bold text-gray-700 mb-4">✨ የGenimi ትንተና ውጤት</h2>
+                <div id="llmAnalysisOutput" class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-gray-700 min-h-[50px]">
+                    ውጤቱ እዚህ ይታያል...
+                </div>
+            </div>
+
+            <!-- 4. Verification Section -->
+            <div class="pt-6">
+                <h2 class="text-xl font-bold text-gray-700 mb-4">3. የይዘት ታማኝነትን ማረጋገጥ (Integrity Check)</h2>
+                
+                <label for="savedHash" class="block text-base font-medium text-gray-700 mb-2">Original Hash (ከFirestore የተገኘ)</label>
+                <input type="text" id="savedHash" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#10b981] focus:border-[#10b981] transition mb-4" placeholder="የመጀመሪያውን Hash እዚህ ይለጥፉ...">
+
+                <label for="verificationContent" class="block text-base font-medium text-gray-700 mb-2">የማረጋገጫ ይዘት (በኋላ የተጎተተው ዳታ)</label>
+                <textarea id="verificationContent" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#10b981] focus:border-[#10b981] transition" placeholder="ከFirestore የተጎተተውን አዲስ የሪፖርት ይዘት እዚህ ያስገቡ..."></textarea>
+
+                <button onclick="verifyIntegrity()" class="w-full mt-4 py-3 bg-[#10b981] text-white font-semibold rounded-lg shadow-md hover:bg-[#059669] hover:shadow-lg">
+                    Verify Content Integrity (ታማኝነትን አረጋግጥ)
+                </button>
+
+                <div id="verificationResult" class="mt-4 p-4 text-center rounded-lg font-bold text-white">
+                    <!-- Verification result will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GEMINI API Configuration ---
+        const API_KEY = ""; // Canvas will provide this if empty
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+        
+        // --- Hash Verification Functions (Unchanged) ---
+        function bufferToHex(buffer) {
+            return Array.from(new Uint8Array(buffer))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        async function hashContent(content) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(content);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            return bufferToHex(hashBuffer);
+        }
+
+        async function generateHash() {
+            const content = document.getElementById('reportContent').value.trim();
+            const outputElement = document.getElementById('originalHashOutput');
+            outputElement.textContent = 'Generating Hash...';
+            outputElement.classList.remove('bg-red-200', 'bg-green-200');
+            outputElement.classList.add('bg-e9ecef');
+
+            if (content.length === 0) {
+                outputElement.textContent = 'Error: እባክዎ የሪፖርት ይዘት ያስገቡ።';
+                outputElement.classList.remove('bg-e9ecef');
+                outputElement.classList.add('bg-red-200');
+                return;
+            }
+
+            try {
+                const hash = await hashContent(content);
+                outputElement.textContent = hash;
+            } catch (error) {
+                outputElement.textContent = `Hashing Failed: ${error.message}`;
+                outputElement.classList.remove('bg-e9ecef');
+                outputElement.classList.add('bg-red-200');
+            }
+        }
+
+        async function verifyIntegrity() {
+            const savedHash = document.getElementById('savedHash').value.trim();
+            const verificationContent = document.getElementById('verificationContent').value.trim();
+            const resultElement = document.getElementById('verificationResult');
+
+            resultElement.classList.remove('bg-red-500', 'bg-green-500');
+
+            if (savedHash.length === 0 || verificationContent.length === 0) {
+                resultElement.textContent = 'እባክዎ ሁለቱንም Hash እና ይዘት ያስገቡ።';
+                resultElement.classList.add('bg-red-500');
+                return;
+            }
+
+            try {
+                const newHash = await hashContent(verificationContent);
+
+                if (newHash === savedHash) {
+                    resultElement.textContent = '✅ ታማኝነት ተረጋግጧል! (Integrity Verified) - ይዘቱ አልተነካም።';
+                    resultElement.classList.add('bg-green-500');
+                } else {
+                    resultElement.textContent = '🚨 ስህተት ተገኝቷል! (Integrity Failed) - ይዘቱ ተለውጧል።';
+                    resultElement.classList.add('bg-red-500');
+                }
+            } catch (error) {
+                resultElement.textContent = `Verification Failed: ${error.message}`;
+                resultElement.classList.add('bg-red-500');
+            }
+        }
+
+        // --- GEMINI LLM Feature: Report Analysis ---
+
+        /**
+         * Implements exponential backoff for API retries.
+         * @param {Function} fn - The function to execute.
+         * @param {number} maxRetries - Maximum number of retries.
+         */
+        async function fetchWithRetry(fn, maxRetries = 3) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await fn();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        async function analyzeReport() {
+            const content = document.getElementById('reportContent').value.trim();
+            const outputElement = document.getElementById('llmAnalysisOutput');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+
+            outputElement.innerHTML = '<span class="text-purple-600">...Genimi ሪፖርቱን እየተነተነ ነው (ትንሽ ጊዜ ይወስዳል)...</span>';
+            analyzeBtn.disabled = true;
+
+            if (content.length === 0) {
+                outputElement.innerHTML = '<span class="text-red-500">Error: እባክዎ ለመተንተን የሪፖርት ይዘት ያስገቡ።</span>';
+                analyzeBtn.disabled = false;
+                return;
+            }
+
+            const systemPrompt = "አንተ የSmall Business Factory Agency ከፍተኛ የፋይናንስ ተንታኝ ነህ። ዋናው ግብህ የ Weldiya ማህበረሰብን የመቋቋም አቅም (Resilience Score) የሚመለከት ሪፖርትን መተንተን ነው።";
+            
+            const userQuery = `ከዚህ በታች ያለውን የፋይናንስ ሪፖርት ወይም የውሂብ መዋቅር ተመልከት።\n\n1. በአንድ አንቀጽ ውስጥ ቁልፍ ግኝቶችን እና ዋናውን 'Resilience Score' ስንት እንደሆነ ገምተህ/አውጥተህ አጠቃልል።\n2. በሪፖርቱ ውስጥ በተጠቀሰው መረጃ ላይ ተመስርተህ አንድ ዋና የፋይናንስ ስጋት እና አንድ የአደጋ ቅነሳ (Risk Mitigation) ሀሳብ አቅርብ።\n\nሪፖርቱ:\n\n${content}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+
+            try {
+                const response = await fetchWithRetry(() => fetch(`${API_URL}?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }));
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "ትንተናው አልተሳካም። እባክዎ ይዘቱን ያረጋግጡ።";
+                
+                // Format the output
+                outputElement.innerHTML = `<div class="whitespace-pre-wrap">${text}</div>`;
+
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                outputElement.innerHTML = `<span class="text-red-500">API ጥሪው አልተሳካም። ስህተት: ${error.message}</span>`;
+            } finally {
+                analyzeBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
